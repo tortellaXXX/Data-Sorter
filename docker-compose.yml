@@ -1,4 +1,5 @@
 version: '3.9'
+
 services:
   dremio:
     image: dremio/dremio-oss:24.3   # фиксированная версия
@@ -10,7 +11,7 @@ services:
     environment:
       - DREMIO_JAVA_EXTRA_OPTS=-Xmx4g -XX:MaxDirectMemorySize=4g
     volumes:
-      - dremio_data:/var/lib/dremio
+      - dremio_data:/opt/dremio/data   # ✅ правильный путь для данных
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "curl -s http://localhost:9047/apiv2/login || exit 1"]
