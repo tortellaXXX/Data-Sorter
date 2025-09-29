@@ -10,31 +10,25 @@ DREMIO_PASSWORD = os.environ.get("DREMIO_PASSWORD", "password")
 DREMIO_SPACE = os.environ.get("DREMIO_SPACE", "MySpace")
 
 def wait_for_dremio_ready(timeout=300, interval=10):
-    """Ждём полной готовности Dremio"""
-    print("Waiting for Dremio to be fully ready...")
+    """Wait for Dremio to be ready AND accept the admin credentials."""
+    print("Waiting for Dremio API to be ready and accept credentials...")
     start = time.time()
-    
+    login_url = f"{DREMIO_HOST}/apiv2/login"
+
     while time.time() - start < timeout:
         try:
-            # Пробуем логин - если успешен, значит Dremio готов
-            r = requests.post(
-                f"{DREMIO_HOST}/apiv2/login",
-                json={"userName": DREMIO_USER, "password": DREMIO_PASSWORD},
-                timeout=10
-            )
-            if r.status_code == 200:
-                print("Dremio is ready and responsive!")
-                return r.json()["token"]
+            r = requests.post(login_url, json={"userName": DREMIO_USER, "password": DREMIO_PASSWORD})
+            if r.status_code == 200:  # Successfully logged in
+                print("Dremio is ready and credentials are valid!")
+                return
             else:
-                print(f"Dremio not ready yet, status: {r.status_code}")
-        except requests.exceptions.ConnectionError:
-            print("Dremio not responding yet, waiting...")
+                # Log the failure, then wait to try again
+                print(f"Login failed with status {r.status_code}. Retrying...")
         except requests.exceptions.RequestException as e:
-            print(f"Request error: {e}, waiting...")
-        
+            print(f"Dremio not responding: {e}, waiting...")
         time.sleep(interval)
-    
-    raise Exception("Dremio did not become ready in time")
+
+    raise TimeoutError("Dremio did not become ready in time")
 
 def ensure_space_exists(token):
     """Проверяем существование пространства и создаем если нужно"""
