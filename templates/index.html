@@ -1,35 +1,34 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta charset="UTF-8">
   <title>Data Sorter</title>
   <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-  <div class="container">
-    <h1>Data Sorter</h1>
+<div class="container">
+  <h1>Drag & Drop CSV File</h1>
 
-    <div id="drop-area" class="drop-area" aria-label="Drop CSV here">
-      <p class="muted">Перетащи CSV сюда или выбери файл</p>
-
-      <!-- скрытый input + видимая единая кнопка выбора -->
-      <input type="file" id="fileElem" accept=".csv" hidden>
-      <button id="chooseBtn" class="btn">Выбрать файл</button>
-
-      <div id="fileInfo" class="file-info">Файл не выбран</div>
+  <form action="/sort" method="post" enctype="multipart/form-data">
+    <!-- Drop area -->
+    <div id="drop-area" class="drop-area">
+      <p>Перетащи CSV сюда или выбери файл</p>
+      <input type="file" name="file" id="fileElem" accept=".csv" required style="display:none;">
+      <button type="button" id="chooseBtn" class="btn">Выбрать файл</button>
+      <p class="file-info" id="fileInfo">Файл не выбран</p>
     </div>
 
+    <!-- Controls -->
     <div class="controls">
-      <label for="sortColumn">Колонка для сортировки</label>
-      <input type="text" id="sortColumn" placeholder="например, total_price" />
+      <label for="sort_column">Колонка для сортировки:</label>
+      <input type="text" name="sort_column" id="sort_column" placeholder="например, total_price" required>
+      <p id="columnsPreview" class="muted">Колонки будут показаны здесь</p>
+      <button type="submit" class="btn">Загрузить и обработать</button>
     </div>
+  </form>
+</div>
 
-    <div id="status" class="status">Ожидание действий</div>
-
-    <pre id="result" class="result" aria-live="polite"></pre>
-  </div>
-
-  <script src="/static/script.js"></script>
+<!-- Подключаем отдельный скрипт -->
+<script src="/static/script.js"></script>
 </body>
 </html>

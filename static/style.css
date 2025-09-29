@@ -65,21 +65,17 @@ h1{
 
 .file-info{ font-size:13px; color:var(--muted); }
 
-.controls{
-  margin-top:16px;
-  display:flex;
-  gap:8px;
-  align-items:center;
+.controls {
+  display: flex;
+  flex-direction: column; /* вертикально */
+  gap: 8px; /* расстояние между элементами */
 }
 
-.controls label{ font-size:13px; color:var(--muted); min-width:170px; }
-.controls input{
-  flex:1;
-  padding:8px 10px;
-  border-radius:8px;
-  border:1px solid #e6e9ef;
-  outline:none;
-  font-size:14px;
+.controls input,
+.controls button,
+.controls p {
+  width: 100%; /* чтобы занимали всю ширину */
+  box-sizing: border-box;
 }
 
 .status{

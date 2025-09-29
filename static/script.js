@@ -1,83 +1,70 @@
 const dropArea = document.getElementById('drop-area');
 const fileInput = document.getElementById('fileElem');
 const chooseBtn = document.getElementById('chooseBtn');
-const sortColumnInput = document.getElementById('sortColumn');
-const resultArea = document.getElementById('result');
+const sortColumnInput = document.getElementById('sort_column');
+const columnsPreview = document.getElementById('columnsPreview');
 const fileInfo = document.getElementById('fileInfo');
-const status = document.getElementById('status');
 
 let selectedFile = null;
-let isUploading = false;
+let fileColumns = [];
 
-;['dragenter','dragover','dragleave','drop'].forEach(evt =>
-  dropArea.addEventListener(evt, e => { e.preventDefault(); e.stopPropagation(); }, false)
+// Drag & drop события
+['dragenter','dragover','dragleave','drop'].forEach(evt =>
+  dropArea.addEventListener(evt, e => { e.preventDefault(); e.stopPropagation(); })
 );
+['dragenter','dragover'].forEach(evt =>
+  dropArea.addEventListener(evt, () => dropArea.classList.add('hover')));
+['dragleave','drop'].forEach(evt =>
+  dropArea.addEventListener(evt, () => dropArea.classList.remove('hover')));
 
-;['dragenter','dragover'].forEach(evt =>
-  dropArea.addEventListener(evt, () => dropArea.classList.add('hover'), false)
-);
-;['dragleave','drop'].forEach(evt =>
-  dropArea.addEventListener(evt, () => dropArea.classList.remove('hover'), false)
-);
-
-// drop handler
-dropArea.addEventListener('drop', handleDrop, false);
-function handleDrop(e) {
+// Обработка drop
+dropArea.addEventListener('drop', (e) => {
   const dt = e.dataTransfer;
-  if (!dt || !dt.files || dt.files.length === 0) return;
+  if(!dt.files || dt.files.length===0) return;
   fileInput.files = dt.files;
   onFileSelected();
-}
+});
 
-// choose button opens file picker
+// Кнопка выбора файла
 chooseBtn.addEventListener('click', () => fileInput.click());
 
-// file input change
+// Изменение input file
 fileInput.addEventListener('change', onFileSelected);
 
+// Файл выбран
 function onFileSelected() {
   selectedFile = fileInput.files[0] || null;
-  if (!selectedFile) {
+  if(!selectedFile){
     fileInfo.textContent = 'Файл не выбран';
+    columnsPreview.textContent = 'Колонки будут показаны здесь';
+    fileColumns = [];
     return;
   }
   fileInfo.textContent = selectedFile.name;
-  status.textContent = 'Файл выбран. Ожидание колонки...';
-  // если колонка уже задана — сразу загружаем
-  const col = sortColumnInput.value.trim();
-  if (col) uploadFile(selectedFile, col);
+  previewColumns(selectedFile);
 }
 
-// если пользователь вводит колонку и файл уже выбран — загружаем
+// Предпросмотр колонок
+function previewColumns(file) {
+  const reader = new FileReader();
+  reader.onload = function(e){
+    const text = e.target.result;
+    const firstLine = text.split('\n')[0];
+    fileColumns = firstLine.split(',').map(c => c.trim());
+    columnsPreview.innerHTML = `<b>Колонки в файле:</b> ${fileColumns.join(', ')}`;
+  };
+  reader.readAsText(file);
+}
+
+// Подсветка совпадений при вводе
 sortColumnInput.addEventListener('input', () => {
-  const col = sortColumnInput.value.trim();
-  if (selectedFile && col && !isUploading) uploadFile(selectedFile, col);
-});
-
-async function uploadFile(file, sortColumn) {
-  if (isUploading) return;
-  isUploading = true;
-  resultArea.textContent = '';
-  status.textContent = 'Загрузка и обработка...';
-  const fd = new FormData();
-  fd.append('file', file);
-  fd.append('sort_column', sortColumn);
-
-  try {
-    const res = await fetch('/sort', { method: 'POST', body: fd });
-    if (!res.ok) {
-      const txt = await res.text();
-      status.textContent = `Ошибка сервера: ${res.status}`;
-      resultArea.textContent = txt;
-    } else {
-      const data = await res.json();
-      status.textContent = 'Готово';
-      resultArea.textContent = JSON.stringify(data, null, 2);
-    }
-  } catch (err) {
-    status.textContent = 'Ошибка сети';
-    resultArea.textContent = String(err);
-  } finally {
-    isUploading = false;
+  const val = sortColumnInput.value.trim().toLowerCase();
+  if(!val){
+    columnsPreview.innerHTML = `<b>Колонки в файле:</b> ${fileColumns.join(', ')}`;
+    return;
   }
-}
+  const highlighted = fileColumns.map(c => 
+    c.toLowerCase().startsWith(val) ? `<b>${c}</b>` : c
+  );
+  columnsPreview.innerHTML = `<b>Колонки в файле:</b> ${highlighted.join(', ')}`;
+});

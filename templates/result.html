@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Sorted CSV Preview</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <style>
+    table.table {border-collapse: collapse; width: 100%;}
+    table.table th, table.table td {border: 1px solid #ddd; padding: 8px;}
+    table.table th {background-color: #007BFF; color: white;}
+    .container {padding: 20px;}
+    .download-btn {
+      display: inline-block; padding: 8px 16px; margin-top: 20px;
+      background-color: #28a745; color: white; border-radius: 5px; text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Превью отсортированных данных (первые 20 строк)</h1>
+    {{ table_html|safe }}
+    <a class="download-btn" href="/download" target="_blank">Скачать полный CSV</a>
+  </div>
+</body>
+</html>
