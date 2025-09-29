@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Data Sorter</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Data Sorter</h1>
+
+    <div id="drop-area" class="drop-area" aria-label="Drop CSV here">
+      <p class="muted">Перетащи CSV сюда или выбери файл</p>
+
+      <!-- скрытый input + видимая единая кнопка выбора -->
+      <input type="file" id="fileElem" accept=".csv" hidden>
+      <button id="chooseBtn" class="btn">Выбрать файл</button>
+
+      <div id="fileInfo" class="file-info">Файл не выбран</div>
+    </div>
+
+    <div class="controls">
+      <label for="sortColumn">Колонка для сортировки</label>
+      <input type="text" id="sortColumn" placeholder="например, total_price" />
+    </div>
+
+    <div id="status" class="status">Ожидание действий</div>
+
+    <pre id="result" class="result" aria-live="polite"></pre>
+  </div>
+
+  <script src="/static/script.js"></script>
+</body>
+</html>
