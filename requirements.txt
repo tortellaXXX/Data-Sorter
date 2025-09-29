@@ -5,4 +5,3 @@ sqlalchemy
 jinja2
 requests
 python-multipart
-

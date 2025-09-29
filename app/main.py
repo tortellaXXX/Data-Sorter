@@ -5,7 +5,7 @@ from fastapi.templating import Jinja2Templates
 
 # Подключаем маршруты
 from app.routes.csv_routes import router as csv_router
-
+from app.utils.helpers import wait_for_dremio, create_admin_user_if_not_exists
 # Подключаем базу и создаем таблицы
 from app.db.session import engine, Base
 
@@ -27,4 +27,7 @@ app.include_router(csv_router)
 # -----------------------------
 # Если запускаем напрямую (python -m app.main)
 if __name__ == "__main__":
+    wait_for_dremio()
+    create_admin_user_if_not_exists()
+
     uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)
