@@ -4,6 +4,7 @@ services:
   dremio:
     image: dremio/dremio-oss:24.3
     container_name: dremio
+    user: "1000:1000"   # ✅ вот это добавь
     ports:
       - "9047:9047"
       - "31010:31010"
