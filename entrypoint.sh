@@ -11,7 +11,7 @@ echo "Waiting for Dremio and creating admin user if needed..."
 # Ждём Dremio и создаём админа через логин/пароль
 python3 - <<'EOF'
 import os
-from app.services.dremio_utils import wait_and_create_admin
+from app.utils.helpers import wait_and_create_admin
 
 # Передаём переменные окружения в модуль
 os.environ['DREMIO_HOST'] = os.environ['DREMIO_HOST']
