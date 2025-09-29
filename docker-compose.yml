@@ -4,8 +4,8 @@ services:
     image: dremio/dremio-oss:latest
     container_name: dremio
     ports:
-      - "9047:9047"     # веб-интерфейс
-      - "31010:31010"   # JDBC/Flight
+      - "9047:9047"
+      - "31010:31010"
     environment:
       - DREMIO_JDBC_USER=admin
       - DREMIO_JDBC_PASSWORD=password

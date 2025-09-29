@@ -16,12 +16,15 @@ def create_temp_csv(contents: str) -> str:
     temp_file.close()
     return temp_file.name
 
-def wait_for_dremio(timeout=120):
+def wait_for_dremio(timeout=180):
+    """Ждём, пока Dremio не станет доступен для логина"""
+    print("Waiting for Dremio to be ready...")
     start = time.time()
     while time.time() - start < timeout:
         try:
             r = requests.get(f"{DREMIO_HOST}/apiv2/login")
             if r.status_code == 200:
+                print("Dremio is ready!")
                 return True
         except:
             pass
@@ -29,14 +32,16 @@ def wait_for_dremio(timeout=120):
     raise TimeoutError("Dremio did not start in time")
 
 def create_admin_user_if_not_exists():
+    """Создаёт админа, если его нет"""
     try:
-        # Попытка залогиниться
+        # Пробуем залогиниться
         url = f"{DREMIO_HOST}/apiv2/login"
         payload = {"userName": DREMIO_USER, "password": DREMIO_PASSWORD}
         r = requests.post(url, json=payload)
         r.raise_for_status()
+        print("Admin user already exists.")
     except requests.exceptions.HTTPError:
-        # Админ не существует — создаём
+        # Если админ не существует — создаём
         url = f"{DREMIO_HOST}/apiv2/user"
         payload = {
             "userName": DREMIO_USER,
@@ -48,4 +53,9 @@ def create_admin_user_if_not_exists():
         }
         r = requests.post(url, json=payload)
         r.raise_for_status()
-        print("Admin user created")
+        print("Admin user created.")
+
+def wait_and_create_admin():
+    """Комбинируем ожидание Dremio и создание админа"""
+    wait_for_dremio()
+    create_admin_user_if_not_exists()
