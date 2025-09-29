@@ -1,15 +1,22 @@
 version: '3.9'
 services:
   dremio:
-    image: dremio/dremio-oss:latest
+    image: dremio/dremio-oss:24.2.0  # указать конкретную версию
     container_name: dremio
     ports:
       - "9047:9047"
       - "31010:31010"
+      - "3000:3000"  # Web UI
     environment:
-      - DREMIO_JDBC_USER=admin
-      - DREMIO_JDBC_PASSWORD=password
+      - DREMIO_JAVA_EXTRA_OPTS=-Xmx2g -XX:MaxDirectMemorySize=3g
+    volumes:
+      - dremio_data:/var/lib/dremio
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9047"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
 
   web:
     build: .
@@ -20,5 +27,11 @@ services:
       - DREMIO_HOST=http://dremio:9047
       - DREMIO_USER=admin
       - DREMIO_PASSWORD=password
+      - DREMIO_SPACE=MySpace
     depends_on:
-      - dremio
+      dremio:
+        condition: service_healthy
+    restart: on-failure
+
+volumes:
+  dremio_data:

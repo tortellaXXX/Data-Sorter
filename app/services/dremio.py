@@ -1,126 +1,108 @@
-# dremio.py
 import os
 import time
 import requests
 import pandas as pd
-import uuid
-import tempfile
 
-# ------------------------------
-# Конфигурация Dremio через окружение
-# ------------------------------
+# Конфигурация
 DREMIO_HOST = os.environ.get("DREMIO_HOST", "http://dremio:9047")
 DREMIO_USER = os.environ.get("DREMIO_USER", "admin")
 DREMIO_PASSWORD = os.environ.get("DREMIO_PASSWORD", "password")
 DREMIO_SPACE = os.environ.get("DREMIO_SPACE", "MySpace")
 
-
-# ------------------------------
-# Пользователи и токены
-# ------------------------------
-def wait_for_dremio_ready(timeout=300, interval=5):
-    """Ждём готовности Dremio API (для первого запуска может быть 403)"""
-    print("Waiting for Dremio API to be ready...")
+def wait_for_dremio_ready(timeout=300, interval=10):
+    """Ждём полной готовности Dremio"""
+    print("Waiting for Dremio to be fully ready...")
     start = time.time()
-    login_url = f"{DREMIO_HOST}/apiv2/login"
-
+    
     while time.time() - start < timeout:
         try:
-            r = requests.post(login_url, json={"userName": DREMIO_USER, "password": DREMIO_PASSWORD})
-            if r.status_code in (200, 403):
-                print("Dremio API is ready!")
-                return
-        except requests.exceptions.RequestException:
-            pass
-        print("Dremio not ready yet, retrying...")
-        time.sleep(interval)
-
-    raise TimeoutError("Dremio API did not become ready in time")
-
-
-def create_first_admin_user():
-    """Создаём первого администратора при первом запуске"""
-    users_url = f"{DREMIO_HOST}/api/v3/user"
-    payload = {
-        "userName": DREMIO_USER,
-        "password": DREMIO_PASSWORD,
-        "firstName": "Admin",
-        "lastName": "User",
-        "email": "admin@example.com",
-        "roles": ["admin"]
-    }
-    try:
-        r = requests.post(users_url, json=payload)
-        if r.status_code in (200, 201):
-            print("Admin user created!")
-        elif r.status_code in (403, 409):
-            print("Admin user already exists (normal for first setup).")
-        else:
-            r.raise_for_status()
-    except requests.exceptions.RequestException as e:
-        print(f"Failed to create admin user: {e}")
-
-
-def get_dremio_token(retries=10, interval=5) -> str:
-    """Получение токена авторизации Dremio с повторными попытками"""
-    url = f"{DREMIO_HOST}/apiv2/login"
-    payload = {"userName": DREMIO_USER, "password": DREMIO_PASSWORD}
-
-    for attempt in range(retries):
-        try:
-            r = requests.post(url, json=payload)
+            # Пробуем логин - если успешен, значит Dremio готов
+            r = requests.post(
+                f"{DREMIO_HOST}/apiv2/login",
+                json={"userName": DREMIO_USER, "password": DREMIO_PASSWORD},
+                timeout=10
+            )
             if r.status_code == 200:
-                token = r.json()["token"]
-                print("Token obtained successfully!")
-                return token
-            elif r.status_code == 403:
-                print(f"Attempt {attempt+1}/{retries}: Admin user not ready, retrying...")
-        except requests.exceptions.RequestException:
-            print(f"Attempt {attempt+1}/{retries}: Dremio not responding, retrying...")
+                print("Dremio is ready and responsive!")
+                return r.json()["token"]
+            else:
+                print(f"Dremio not ready yet, status: {r.status_code}")
+        except requests.exceptions.ConnectionError:
+            print("Dremio not responding yet, waiting...")
+        except requests.exceptions.RequestException as e:
+            print(f"Request error: {e}, waiting...")
+        
         time.sleep(interval)
+    
+    raise Exception("Dremio did not become ready in time")
 
-    raise TimeoutError("Failed to obtain Dremio token after retries")
+def ensure_space_exists(token):
+    """Проверяем существование пространства и создаем если нужно"""
+    headers = {"Authorization": f"_dremio{token}"}
+    
+    # Получаем список пространств
+    r = requests.get(f"{DREMIO_HOST}/api/v3/catalog", headers=headers)
+    if r.status_code == 200:
+        spaces = r.json().get("data", [])
+        for space in spaces:
+            if space.get("name") == DREMIO_SPACE:
+                print(f"Space '{DREMIO_SPACE}' already exists")
+                return
+    
+    # Создаем пространство если не существует
+    payload = {
+        "entityType": "space",
+        "name": DREMIO_SPACE
+    }
+    r = requests.post(f"{DREMIO_HOST}/api/v3/catalog", headers=headers, json=payload)
+    if r.status_code in (200, 201):
+        print(f"Space '{DREMIO_SPACE}' created successfully")
+    else:
+        print(f"Failed to create space: {r.status_code} - {r.text}")
 
+def get_dremio_token():
+    """Получаем токен Dremio"""
+    return wait_for_dremio_ready()
 
-def wait_and_create_admin() -> str:
-    """
-    Полный процесс первого запуска:
-    - Ждём готовности API
-    - Создаём администратора
-    - Возвращаем токен для работы
-    """
-    wait_for_dremio_ready()
-    create_first_admin_user()
-    return get_dremio_token()
-
-
-# ------------------------------
-# Работа с CSV и SQL
-# ------------------------------
 def upload_csv_to_dremio(csv_bytes: bytes, table_name: str) -> bool:
-    """Загрузка CSV в Dremio как таблицу"""
-    token = wait_and_create_admin()
+    """Загрузка CSV в Dremio"""
+    token = get_dremio_token()
+    
+    # Сначала убедимся что пространство существует
+    ensure_space_exists(token)
+    
     url = f"{DREMIO_HOST}/api/v3/catalog/{DREMIO_SPACE}/{table_name}/files"
     headers = {"Authorization": f"_dremio{token}"}
-    files = {"file": ("file.csv", csv_bytes)}
-    r = requests.post(url, headers=headers, files=files)
-    r.raise_for_status()
-    print(f"CSV uploaded to table '{table_name}' successfully")
-    return True
-
+    files = {"file": ("file.csv", csv_bytes, "text/csv")}
+    
+    try:
+        r = requests.post(url, headers=headers, files=files)
+        if r.status_code in (200, 201):
+            print(f"CSV uploaded to table '{table_name}' successfully")
+            return True
+        else:
+            print(f"Failed to upload CSV: {r.status_code} - {r.text}")
+            return False
+    except Exception as e:
+        print(f"Error uploading CSV: {e}")
+        return False
 
 def query_dremio(sql_query: str) -> str:
-    """Выполнение SQL-запроса и возврат результата в CSV"""
-    token = wait_and_create_admin()
+    """Выполнение SQL-запроса"""
+    token = get_dremio_token()
     url = f"{DREMIO_HOST}/api/v3/sql"
     headers = {
         "Authorization": f"_dremio{token}",
         "Content-Type": "application/json"
     }
     payload = {"sql": sql_query}
-    r = requests.post(url, headers=headers, json=payload)
-    r.raise_for_status()
-    data = r.json()
-    df = pd.DataFrame(data["rows"], columns=data["columns"])
-    return df.to_csv(index=False)
-
+    
+    try:
+        r = requests.post(url, headers=headers, json=payload)
+        r.raise_for_status()
+        data = r.json()
+        df = pd.DataFrame(data["rows"], columns=[col["name"] for col in data["columns"]])
+        return df.to_csv(index=False)
+    except Exception as e:
+        print(f"Error querying Dremio: {e}")
+        return ""
