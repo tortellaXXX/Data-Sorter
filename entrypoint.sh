@@ -3,12 +3,17 @@ set -e
 
 echo "Waiting for Dremio and creating admin user if needed..."
 
-python3 - <<'EOF'
-from app.utils.helpers import wait_for_dremio
+# Выполняем Python-скрипт inline для создания админа и получения токена
+TOKEN=$(python3 - <<'EOF'
+import os
+from app.utils.helpers import wait_and_create_admin
 
-# Ждём готовности Dremio и создаём админа при первом запуске
-token = wait_for_dremio()
+token = wait_and_create_admin()
+print(token)  # Выводим токен, чтобы его можно было использовать или логировать
 EOF
+)
+
+echo "Dremio admin ready. Token obtained: $TOKEN"
 
 echo "Starting FastAPI..."
 exec uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
