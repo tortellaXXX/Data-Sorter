@@ -1,21 +1,42 @@
-project/
-├─ app/
-│   ├─ main.py              # FastAPI app и запуск
-│   ├─ routes/
-│   │    └─ csv_routes.py   # Все маршруты загрузки/сортировки/скачивания
-│   ├─ services/
-│   │    ├─ dremio.py       # Работа с Dremio API
-│   │    └─ csv_service.py  # Логика работы с CSV и предпросмотр
-│   ├─ db/
-│   │    ├─ models.py       # SQLAlchemy модели
-│   │    └─ session.py      # Создание DB-сессий
-│   └─ utils/
-│        └─ helpers.py      # Вспомогательные функции, генерация UUID и т.д.
-├─ templates/
-│   ├─ index.html        
-│   └─ result.html        
-├─ static/
-│   ├─ style.css
-│   └─ script.js 
-├─ db.sqlite              
-└─ requirements.txt
+F:.
+│   db.sqlite                 # Локальная база данных SQLite (не хранить в Git)
+│   docker-compose.yml        # Конфигурация Docker Compose для всех сервисов
+│   Dockerfile                # Dockerfile для веб-приложения
+│   example.csv               # Пример CSV для тестов/демо
+│   README.md                 # Документация проекта
+│   requirements.txt          # Зависимости Python проекта
+│   .gitignore                # Игнорирование лишних файлов при пуше
+│
+├───app                       # Основной код приложения
+│   │
+│   ├───__init__.py           # Делает папку app пакетом Python
+│   ├───main.py               # Точка входа веб-приложения (FastAPI/Flask)
+│   │
+│   ├───db                    # Работа с базой данных
+│   │   │
+│   │   ├── models.py         # SQLAlchemy модели или ORM-схемы
+│   │   └── session.py        # Настройка сессии/подключения к БД
+│   │
+│   ├───routes                # Роуты / эндпоинты API
+│   │   │
+│   │   ├── __init__.py       # Делает папку routes пакетом
+│   │   └── csv_routes.py     # Эндпоинты для загрузки/обработки CSV
+│   │
+│   ├───services              # Сервисный слой (логика приложения)
+│   │   │
+│   │   ├── __init__.py       # Делает папку services пакетом
+│   │   ├── csv_services.py   # Логика работы с CSV (сортировка, обработка)
+│   │   └── dremio.py         # Клиент Dremio (запросы и загрузка CSV)
+│   │
+│   ├───utils                 # Вспомогательные функции
+│   │   │
+│   │   ├── __init__.py       # Делает папку utils пакетом
+│   │   └── helpers.py        # Хелперы/утилиты
+│
+├───static                    # Статика для веб-приложения
+│   ├── script.js             # JS скрипты
+│   └── style.css             # CSS стили
+│
+└───templates                 # HTML шаблоны
+    ├── index.html            # Главная страница
+    └── result.html           # Страница с результатом обработки CSV
