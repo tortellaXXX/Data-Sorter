@@ -1,22 +1,22 @@
 version: '3.9'
 services:
   dremio:
-    image: dremio/dremio-oss:latest  # указать конкретную версию
+    image: dremio/dremio-oss:24.3   # фиксированная версия
     container_name: dremio
     ports:
-      - "9047:9047"
-      - "31010:31010"
-      - "3000:3000"  # Web UI
+      - "9047:9047"    # REST API
+      - "31010:31010"  # JDBC/ODBC
+      # - "3000:3000"  # WebUI (по желанию)
     environment:
-      - DREMIO_JAVA_EXTRA_OPTS=-Xmx2g -XX:MaxDirectMemorySize=3g
+      - DREMIO_JAVA_EXTRA_OPTS=-Xmx4g -XX:MaxDirectMemorySize=4g
     volumes:
       - dremio_data:/var/lib/dremio
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9047"]
-      interval: 30s
+      test: ["CMD-SHELL", "curl -s http://localhost:9047/apiv2/login || exit 1"]
+      interval: 20s
       timeout: 10s
-      retries: 10
+      retries: 15
 
   web:
     build: .
