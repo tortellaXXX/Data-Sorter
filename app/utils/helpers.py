@@ -14,7 +14,7 @@ def create_temp_csv(contents: str) -> str:
     temp_file.close()
     return temp_file.name
 
-def wait_for_dremio(timeout=180, interval=5):
+def wait_for_dremio(timeout=300, interval=5):
     """Ждём, пока Dremio API не станет доступен с Basic Auth"""
     print("Waiting for Dremio API to be ready...")
     start = time.time()

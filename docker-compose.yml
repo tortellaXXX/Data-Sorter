@@ -20,6 +20,5 @@ services:
       - DREMIO_HOST=http://dremio:9047
       - DREMIO_USER=admin
       - DREMIO_PASSWORD=password
-      - DREMIO_SPACE=MySpace
     depends_on:
       - dremio
