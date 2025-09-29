@@ -14,7 +14,7 @@ services:
       - dremio_data:/opt/dremio/data   # ✅ правильный путь для данных
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:9047/apiv2/server_status || exit 1"]
+      test: ["CMD", "curl", "-f", "http://localhost:9047/"]
       interval: 20s
       timeout: 10s
       retries: 15
