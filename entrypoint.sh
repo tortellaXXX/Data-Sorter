@@ -6,7 +6,7 @@ echo "Waiting for Dremio and creating admin user if needed..."
 python3 - <<'EOF'
 from app.utils.helpers import wait_for_dremio
 
-# Ждём готовности Dremio и получаем токен
+# Ждём готовности Dremio и создаём админа при первом запуске
 token = wait_for_dremio()
 EOF
 
