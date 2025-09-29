@@ -1,0 +1,25 @@
+version: '3.9'
+services:
+  dremio:
+    image: dremio/dremio-oss:latest
+    container_name: dremio
+    ports:
+      - "9047:9047"     # веб-интерфейс
+      - "31010:31010"   # JDBC/Flight
+    environment:
+      - DREMIO_JDBC_USER=admin
+      - DREMIO_JDBC_PASSWORD=password
+    restart: unless-stopped
+
+  web:
+    build: .
+    container_name: csv_app
+    ports:
+      - "8000:8000"
+    environment:
+      - DREMIO_HOST=http://dremio:9047
+      - DREMIO_USER=admin
+      - DREMIO_PASSWORD=password
+      - DREMIO_SPACE=MySpace
+    depends_on:
+      - dremio
