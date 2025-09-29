@@ -9,3 +9,4 @@ COPY . .
 
 CMD ["sh", "-c", "python app/dremio_init.py && uvicorn app.main:app --host 0.0.0.0 --port 8000"]
 
+
