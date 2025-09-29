@@ -1,11 +1,12 @@
+import os
 import requests
 import pandas as pd
 
-# Конфигурация Dremio
-DREMIO_HOST = "http://localhost:9047"  # URL Dremio
-DREMIO_USER = "tortella"
-DREMIO_PASSWORD = "hubabuba"
-DREMIO_SPACE = "MySpace"  # рабочее пространство Dremio
+# Конфигурация Dremio через переменные окружения
+DREMIO_HOST = os.environ.get("DREMIO_HOST", "http://dremio:9047")
+DREMIO_USER = os.environ.get("DREMIO_USER", "tortella")
+DREMIO_PASSWORD = os.environ.get("DREMIO_PASSWORD", "hubabuba")
+DREMIO_SPACE = os.environ.get("DREMIO_SPACE", "MySpace")
 
 def get_dremio_token() -> str:
     """Получение токена авторизации Dremio"""
