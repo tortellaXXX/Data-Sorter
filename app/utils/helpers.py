@@ -15,49 +15,61 @@ def create_temp_csv(contents: str) -> str:
     temp_file.close()
     return temp_file.name
 
-def wait_for_dremio(timeout=180):
-    """Ждём, пока Dremio не станет доступен для логина"""
-    print("Waiting for Dremio to be ready...")
+def wait_for_dremio(timeout=180, interval=5):
+    """Ждём, пока Dremio API не станет доступен"""
+    print("Waiting for Dremio API to be ready...")
     start = time.time()
+    headers = {"Authorization": f"Bearer {DREMIO_PAT}"}
+    users_url = f"{DREMIO_HOST}/api/v3/user"
+
     while time.time() - start < timeout:
         try:
-            r = requests.get(f"{DREMIO_HOST}/api/v3/login")  # проверяем новый API
+            r = requests.get(users_url, headers=headers)
             if r.status_code == 200:
-                print("Dremio is ready!")
+                print("Dremio API is ready!")
                 return True
-        except:
-            pass
-        time.sleep(5)
-    raise TimeoutError("Dremio did not start in time")
+            else:
+                print(f"API returned {r.status_code}, retrying...")
+        except requests.exceptions.RequestException as e:
+            print(f"API not ready yet: {e}")
+        time.sleep(interval)
 
-def create_admin_user_if_not_exists():
-    """Создаёт администратора, если его нет, через новый API /api/v3/user и PAT"""
+    raise TimeoutError("Dremio API did not become ready in time")
+
+def create_admin_user_if_not_exists(retries=3, interval=5):
+    """Создаёт администратора, если его нет"""
     headers = {"Authorization": f"Bearer {DREMIO_PAT}"}
-
-    # Проверяем, существует ли пользователь
     users_url = f"{DREMIO_HOST}/api/v3/user"
-    resp = requests.get(users_url, headers=headers)
-    resp.raise_for_status()
-    users = [u['userName'] for u in resp.json()['data']]
 
-    if DREMIO_USER in users:
-        print("Admin user already exists.")
-        return
+    for attempt in range(retries):
+        try:
+            resp = requests.get(users_url, headers=headers)
+            resp.raise_for_status()
+            data = resp.json().get('data', [])
+            users = [u['userName'] for u in data]
+            if DREMIO_USER in users:
+                print("Admin user already exists.")
+                return
 
-    # Создаём пользователя, если нет
-    payload = {
-        "userName": DREMIO_USER,
-        "password": DREMIO_PASSWORD,
-        "firstName": "Admin",
-        "lastName": "User",
-        "email": "admin@example.com",
-        "roles": ["admin"]
-    }
-    r = requests.post(users_url, headers=headers, json=payload)
-    r.raise_for_status()
-    print("Admin user created.")
+            payload = {
+                "userName": DREMIO_USER,
+                "password": DREMIO_PASSWORD,
+                "firstName": "Admin",
+                "lastName": "User",
+                "email": "admin@example.com",
+                "roles": ["admin"]
+            }
+            r = requests.post(users_url, headers=headers, json=payload)
+            r.raise_for_status()
+            print("Admin user created.")
+            return
+        except requests.exceptions.RequestException as e:
+            print(f"Attempt {attempt+1}/{retries} failed: {e}")
+            time.sleep(interval)
+
+    raise RuntimeError("Failed to create admin user after retries")
 
 def wait_and_create_admin():
-    """Ждём Dremio и создаём администратора"""
+    """Ждём Dremio API и создаём администратора"""
     wait_for_dremio()
     create_admin_user_if_not_exists()
