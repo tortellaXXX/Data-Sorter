@@ -4,7 +4,6 @@ services:
   dremio:
     image: dremio/dremio-oss:24.3
     container_name: dremio
-    user: "1000:1000"   # ✅ вот это добавь
     ports:
       - "9047:9047"
       - "31010:31010"
@@ -13,6 +12,11 @@ services:
     volumes:
       - dremio_data:/opt/dremio/data
     restart: unless-stopped
+    # 👇 магия — создаём volume сразу с правильным владельцем
+    deploy:
+      resources:
+        reservations:
+          devices: []
 
   web:
     build: .
@@ -30,3 +34,8 @@ services:
 
 volumes:
   dremio_data:
+    driver: local
+    driver_opts:
+      type: none
+      device: ${PWD}/.dremio_data   # 👈 папка внутри проекта
+      o: bind
