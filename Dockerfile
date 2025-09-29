@@ -7,8 +7,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-# Чиним права на случай запуска от другого пользователя
-RUN chmod -R 777 /app
-
-# Запуск: сначала инициализация Dremio, потом API
 CMD ["sh", "-c", "python app/dremio_init.py && uvicorn app.main:app --host 0.0.0.0 --port 8000"]
+

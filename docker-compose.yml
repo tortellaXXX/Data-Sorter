@@ -12,11 +12,6 @@ services:
     volumes:
       - dremio_data:/opt/dremio/data
     restart: unless-stopped
-    # 👇 магия — создаём volume сразу с правильным владельцем
-    deploy:
-      resources:
-        reservations:
-          devices: []
 
   web:
     build: .
@@ -34,8 +29,3 @@ services:
 
 volumes:
   dremio_data:
-    driver: local
-    driver_opts:
-      type: none
-      device: ${PWD}/.dremio_data   # 👈 папка внутри проекта
-      o: bind
