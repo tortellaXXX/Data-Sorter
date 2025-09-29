@@ -4,8 +4,8 @@ import pandas as pd
 
 # Конфигурация Dremio через переменные окружения
 DREMIO_HOST = os.environ.get("DREMIO_HOST", "http://dremio:9047")
-DREMIO_USER = os.environ.get("DREMIO_USER", "tortella")
-DREMIO_PASSWORD = os.environ.get("DREMIO_PASSWORD", "hubabuba")
+DREMIO_USER = os.environ.get("DREMIO_USER", "admin")
+DREMIO_PASSWORD = os.environ.get("DREMIO_PASSWORD", "password")
 DREMIO_SPACE = os.environ.get("DREMIO_SPACE", "MySpace")
 
 def get_dremio_token() -> str:
