@@ -1,24 +1,13 @@
 #!/bin/bash
 set -e
 
-# Проверка, что переменные окружения установлены
-: "${DREMIO_HOST:?Need to set DREMIO_HOST}"
-: "${DREMIO_USER:?Need to set DREMIO_USER}"
-: "${DREMIO_PASSWORD:?Need to set DREMIO_PASSWORD}"
-
 echo "Waiting for Dremio and creating admin user if needed..."
 
-# Ждём Dremio и создаём админа через логин/пароль
 python3 - <<'EOF'
-import os
-from app.utils.helpers import wait_and_create_admin
+from app.utils.helpers import wait_for_dremio
 
-# Передаём переменные окружения в модуль
-os.environ['DREMIO_HOST'] = os.environ['DREMIO_HOST']
-os.environ['DREMIO_USER'] = os.environ['DREMIO_USER']
-os.environ['DREMIO_PASSWORD'] = os.environ['DREMIO_PASSWORD']
-
-wait_and_create_admin()
+# Ждём готовности Dremio и получаем токен
+token = wait_for_dremio()
 EOF
 
 echo "Starting FastAPI..."
