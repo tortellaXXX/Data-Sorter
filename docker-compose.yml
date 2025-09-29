@@ -2,22 +2,17 @@ version: '3.9'
 
 services:
   dremio:
-    image: dremio/dremio-oss:24.3   # фиксированная версия
+    image: dremio/dremio-oss:24.3
     container_name: dremio
     ports:
-      - "9047:9047"    # REST API
-      - "31010:31010"  # JDBC/ODBC
-      # - "3000:3000"  # WebUI (по желанию)
+      - "9047:9047"
+      - "31010:31010"
     environment:
       - DREMIO_JAVA_EXTRA_OPTS=-Xmx4g -XX:MaxDirectMemorySize=4g
     volumes:
-      - dremio_data:/opt/dremio/data   # ✅ правильный путь для данных
+      - dremio_data:/opt/dremio/data
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9047/"]
-      interval: 20s
-      timeout: 10s
-      retries: 15
+
   web:
     build: .
     container_name: csv_app
@@ -29,8 +24,7 @@ services:
       - DREMIO_PASSWORD=password
       - DREMIO_SPACE=MySpace
     depends_on:
-      dremio:
-        condition: service_healthy
+      - dremio
     restart: on-failure
 
 volumes:
