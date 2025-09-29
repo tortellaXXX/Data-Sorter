@@ -1,7 +1,7 @@
 version: '3.9'
 services:
   dremio:
-    image: dremio/dremio-oss:24.2.0  # указать конкретную версию
+    image: dremio/dremio-oss:latest  # указать конкретную версию
     container_name: dremio
     ports:
       - "9047:9047"
