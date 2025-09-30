@@ -1,31 +1,27 @@
-version: '3.9'
+version: "3.9"
 
 services:
-  dremio:
-    image: dremio/dremio-oss:24.3
-    container_name: dremio
-    ports:
-      - "9047:9047"
-      - "31010:31010"
+  db:
+    image: postgres:14
+    restart: always
     environment:
-      - DREMIO_JAVA_EXTRA_OPTS=-Xmx4g -XX:MaxDirectMemorySize=4g
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: app
+      POSTGRES_DB: appdb
     volumes:
-      - dremio_data:/opt/dremio/data
-    restart: unless-stopped
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
 
   web:
     build: .
-    container_name: csv_app
+    restart: always
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgresql://app:app@db:5432/appdb
     ports:
       - "8000:8000"
-    environment:
-      - DREMIO_HOST=http://dremio:9047
-      - DREMIO_USER=admin
-      - DREMIO_PASSWORD=password
-      - DREMIO_SPACE=MySpace
-    depends_on:
-      - dremio
-    restart: on-failure
 
 volumes:
-  dremio_data:
+  postgres_data:

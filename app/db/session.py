@@ -1,20 +1,15 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
+import os
 
-# Для SQLite
-DATABASE_URL = "sqlite:///./db.sqlite"
-# Для PostgreSQL (пример)
-# DATABASE_URL = "postgresql://user:password@localhost/dbname"
+# Берём строку подключения из ENV (будет в docker-compose)
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://app:app@db:5432/appdb")
 
-engine = create_engine(
-    DATABASE_URL, connect_args={"check_same_thread": False}  # нужно для SQLite
-)
+engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
 
-
-# Получение сессии БД
 def get_db():
     db = SessionLocal()
     try:

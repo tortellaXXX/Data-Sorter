@@ -1,19 +1,14 @@
 from fastapi import APIRouter, Request, UploadFile, Form, Depends
 from fastapi.responses import HTMLResponse, StreamingResponse
 from fastapi.templating import Jinja2Templates
-from io import StringIO
 import pandas as pd
 import uuid
 from sqlalchemy.orm import Session
+from io import StringIO
 
-# Импорт сервисов
-from app.services import dremio
+# Импорт сервисов (теперь Postgres вместо Dremio)
+from app.services import csv_service
 from app.db.session import get_db
-from app.db.models import UserTable
-
-import os
-
-DREMIO_SPACE = os.environ.get("DREMIO_SPACE", "MySpace")
 
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
@@ -35,24 +30,23 @@ async def sort_df(
 ):
     session_id = request.cookies.get("session_id") or str(uuid.uuid4())
 
+    # читаем CSV
     contents = await file.read()
-    df = pd.read_csv(StringIO(contents.decode("utf-8")))
+    df = csv_service.read_csv(contents)
 
-    if sort_column not in df.columns:
-        return HTMLResponse(
-            f"<h3>Колонки '{sort_column}' нет в файле. Доступные: {list(df.columns)}</h3>"
-        )
+    # проверяем колонку
+    try:
+        csv_service.check_column(df, sort_column)
+    except ValueError as e:
+        return csv_service.create_html_error(str(e))
 
-    preview_html = df.sort_values(sort_column).head(20).to_html(classes="table", index=False)
+    # делаем предпросмотр
+    preview_html = csv_service.generate_preview_html(df, sort_column)
 
-    table_name = f"table_{uuid.uuid4().hex}"
-    if dremio.upload_csv_to_dremio(contents, table_name):
-        db_user_table = UserTable(session_id=session_id, dremio_table=table_name)
-        db.add(db_user_table)
-        db.commit()
-    else:
-        return HTMLResponse("<h3>Ошибка при загрузке CSV в Dremio</h3>")
+    # сохраняем в БД
+    csv_service.save_csv_to_db(contents, db, session_id)
 
+    # ответ
     response = templates.TemplateResponse(
         "result.html", {"request": request, "table_html": preview_html}
     )
@@ -67,13 +61,9 @@ async def download_csv(request: Request, db: Session = Depends(get_db)):
     if not session_id:
         return HTMLResponse("<h3>CSV еще не загружен</h3>")
 
-    user_table = db.query(UserTable).filter(UserTable.session_id == session_id).first()
-    if not user_table:
-        return HTMLResponse("<h3>CSV еще не загружен</h3>")
-
-    result_csv = dremio.query_dremio(f'SELECT * FROM "{DREMIO_SPACE}"."{user_table.dremio_table}"')
+    result_csv = csv_service.download_csv_from_db(db, session_id)
     if not result_csv:
-        return HTMLResponse("<h3>Ошибка при запросе к Dremio</h3>")
+        return HTMLResponse("<h3>Ошибка при получении данных</h3>")
 
     output = StringIO(result_csv)
     return StreamingResponse(
