@@ -1,3 +1,5 @@
+# app/routes/csv_routes.py
+
 from fastapi import APIRouter, Request, UploadFile, Form, Depends
 from fastapi.responses import HTMLResponse, StreamingResponse
 from fastapi.templating import Jinja2Templates
@@ -6,7 +8,7 @@ import uuid
 from sqlalchemy.orm import Session
 from io import StringIO
 
-# Импорт сервисов (теперь Postgres вместо Dremio)
+# Импорт сервисов 
 from app.services import csv_service
 from app.db.session import get_db
 
