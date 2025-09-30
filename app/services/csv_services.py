@@ -5,6 +5,7 @@ import io
 import uuid
 from fastapi.responses import HTMLResponse
 from sqlalchemy.orm import Session
+from typing import Optional
 from app.db.models import UserTable
 
 
@@ -60,7 +61,7 @@ def save_csv_to_db(contents: bytes, db: Session, session_id: str) -> str:
     return table_name
 
 
-def download_csv_from_db(db: Session, session_id: str) -> str | None:
+def download_csv_from_db(db: Session, session_id: str) -> Optional[str]:
     """
     Загружает CSV из Postgres для текущего пользователя
     """
