@@ -99,8 +99,4 @@ Set environment variables in `docker-compose.yml`:
 - **Old schema conflict**  
   If `user_tables` exists with wrong columns, you may need to drop it or recreate DB volume.
 
----
-
-## 📄 License
-
-This project is licensed under the MIT License.  
+--- 
