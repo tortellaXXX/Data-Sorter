@@ -1,42 +1,103 @@
-F:.
-│   db.sqlite                 # Локальная база данных SQLite (не хранить в Git)
-│   docker-compose.yml        # Конфигурация Docker Compose для всех сервисов
-│   Dockerfile                # Dockerfile для веб-приложения
-│   example.csv               # Пример CSV для тестов/демо
-│   README.md                 # Документация проекта
-│   requirements.txt          # Зависимости Python проекта
-│   .gitignore                # Игнорирование лишних файлов при пуше
+# Data Sorter
+
+A web application for uploading, sorting, and downloading CSV files.  
+Built with **FastAPI**, **PostgreSQL**, and **Docker**.
+
+---
+
+## 🚀 Features
+
+- Upload CSV files  
+- Sort data by a given column  
+- Download the sorted CSV  
+- Persistent storage via PostgreSQL  
+- Runs in Docker containers  
+
+---
+
+## 📁 Project Structure
+
+```
+Data-Sorter/
+│   docker-compose.yml
+│   Dockerfile
+│   requirements.txt
+│   README.md
 │
-├───app                       # Основной код приложения
-│   │
-│   ├───__init__.py           # Делает папку app пакетом Python
-│   ├───main.py               # Точка входа веб-приложения (FastAPI/Flask)
-│   │
-│   ├───db                    # Работа с базой данных
-│   │   │
-│   │   ├── models.py         # SQLAlchemy модели или ORM-схемы
-│   │   └── session.py        # Настройка сессии/подключения к БД
-│   │
-│   ├───routes                # Роуты / эндпоинты API
-│   │   │
-│   │   ├── __init__.py       # Делает папку routes пакетом
-│   │   └── csv_routes.py     # Эндпоинты для загрузки/обработки CSV
-│   │
-│   ├───services              # Сервисный слой (логика приложения)
-│   │   │
-│   │   ├── __init__.py       # Делает папку services пакетом
-│   │   ├── csv_services.py   # Логика работы с CSV (сортировка, обработка)
-│   │   └── dremio.py         # Клиент Dremio (запросы и загрузка CSV)
-│   │
-│   ├───utils                 # Вспомогательные функции
-│   │   │
-│   │   ├── __init__.py       # Делает папку utils пакетом
-│   │   └── helpers.py        # Хелперы/утилиты
+├── app/
+│   ├── db/
+│   │   ├── models.py
+│   │   └── session.py
+│   ├── routes/
+│   │   └── csv_routes.py
+│   ├── services/
+│   │   └── csv_services.py
+│   └── utils/
+│       └── helpers.py
+│   └── main.py
 │
-├───static                    # Статика для веб-приложения
-│   ├── script.js             # JS скрипты
-│   └── style.css             # CSS стили
+├── static/
+│   ├── script.js
+│   └── style.css
 │
-└───templates                 # HTML шаблоны
-    ├── index.html            # Главная страница
-    └── result.html           # Страница с результатом обработки CSV
+└── templates/
+    ├── index.html
+    └── result.html
+```
+
+---
+
+## 🛠 Prerequisites
+
+- Docker  
+- Docker Compose  
+
+---
+
+## 🔧 Installation & Run
+
+1. Clone the repo:  
+   ```bash
+   git clone https://github.com/tortellaXXX/Data-Sorter.git
+   cd Data-Sorter
+   ```
+
+2. Build and run containers:  
+   ```bash
+   docker-compose up --build
+   ```
+
+3. Open in browser:  
+   ```
+   http://localhost:8000
+   ```
+
+---
+
+## ⚙️ Configuration
+
+Set environment variables in `docker-compose.yml`:  
+
+- `POSTGRES_USER` — username for PostgreSQL  
+- `POSTGRES_PASSWORD` — password  
+- `POSTGRES_DB` — database name  
+- `DATABASE_URL` — e.g. `postgresql+psycopg2://user:password@db:5432/dbname`
+
+---
+
+## 🔍 API Endpoints
+
+- **POST /sort** – upload a CSV and preview sorted data  
+- **GET /download** – download the sorted CSV  
+
+---
+
+## 🛠 Troubleshooting
+
+- **Connection refused to DB**  
+  Web might start before DB is ready. Use `depends_on` + `healthcheck` in `docker-compose.yml`.  
+- **Old schema conflict**  
+  If `user_tables` exists with wrong columns, you may need to drop it or recreate DB volume.
+
+---
+
