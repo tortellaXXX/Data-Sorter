@@ -3,25 +3,28 @@ version: "3.9"
 services:
   db:
     image: postgres:14
+    container_name: data-sorter-db
     restart: always
     environment:
-      POSTGRES_USER: app
-      POSTGRES_PASSWORD: app
-      POSTGRES_DB: appdb
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: sorter
     ports:
       - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d sorter"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   web:
     build: .
+    container_name: data-sorter-web
     restart: always
     depends_on:
-      - db
-    environment:
-      DATABASE_URL: postgresql://app:app@db:5432/appdb
+      db:
+        condition: service_healthy
     ports:
       - "8000:8000"
-
-volumes:
-  postgres_data:
+    environment:
+      DATABASE_URL: postgres://user:password@db:5432/sorter
