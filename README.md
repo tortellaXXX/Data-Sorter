@@ -1,4 +1,5 @@
 # Data Sorter
+<img width="707" height="473" alt="image" src="https://github.com/user-attachments/assets/3ff87fb5-55e5-454a-a777-3ea41fa96b51" />
 
 A web application for uploading, sorting, and downloading CSV files.  
 Built with **FastAPI**, **PostgreSQL**, and **Docker**.
