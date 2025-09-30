@@ -19,30 +19,31 @@ Built with **FastAPI**, **PostgreSQL**, and **Docker**.
 
 ```
 Data-Sorter/
-│   docker-compose.yml
-│   Dockerfile
-│   requirements.txt
-│   README.md
+│   docker-compose.yml       # Docker Compose config (Postgres + FastAPI app)
+│   Dockerfile               # Dockerfile for building the FastAPI app
+│   requirements.txt         # Python dependencies
+│   README.md                # Project documentation
 │
-├── app/
-│   ├── db/
-│   │   ├── models.py
-│   │   └── session.py
-│   ├── routes/
-│   │   └── csv_routes.py
-│   ├── services/
-│   │   └── csv_services.py
-│   └── utils/
-│       └── helpers.py
-│   └── main.py
+├── app/                     # Main application package
+│   ├── db/                  # Database layer
+│   │   ├── models.py        # SQLAlchemy models (tables structure)
+│   │   └── session.py       # Database session/engine setup
+│   ├── routes/              # API routes
+│   │   └── csv_routes.py    # Endpoints for CSV upload, sorting, download
+│   ├── services/            # Business logic layer
+│   │   └── csv_services.py  # CSV processing and database interaction
+│   └── utils/               # Helper utilities
+│       └── helpers.py       # Misc helper functions (temp files, IDs, etc.)
+│   └── main.py              # FastAPI application entry point
 │
-├── static/
-│   ├── script.js
-│   └── style.css
+├── static/                  # Static assets (frontend)
+│   ├── script.js            # Client-side JavaScript
+│   └── style.css            # Styles for HTML templates
 │
-└── templates/
-    ├── index.html
-    └── result.html
+└── templates/               # Jinja2 templates for HTML rendering
+    ├── index.html           # Main upload form
+    └── result.html          # Sorted CSV preview page
+
 ```
 
 ---
